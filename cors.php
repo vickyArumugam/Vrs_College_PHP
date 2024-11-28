@@ -1,8 +1,14 @@
 <?php
-/* Handle CORS */
-
-// Specify domains from which requests are allowed
+// cors.php: Centralized CORS handling
 header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Methods, Authorization');
 
-// Specify which request methods are allowed
-header('Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS');
+// Handle preflight (OPTIONS) requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+?>
+

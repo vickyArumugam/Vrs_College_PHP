@@ -1,23 +1,6 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-$host = 'localhost'; // Your database host
-$dbname = 'paper'; // Your database name
-$username = 'root'; // Your database username
-$password = ''; // Your database password
-
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
-    exit;
-}
-
+include 'cors.php';
+include 'db_config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
@@ -31,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         echo json_encode(['error' => 'Failed to fetch accounts: ' . $e->getMessage()]);
     }
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    

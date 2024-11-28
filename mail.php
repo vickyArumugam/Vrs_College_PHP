@@ -1,5 +1,5 @@
 <?php
-header('Access-Control-Allow-Origin: *');
+include 'cors.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 

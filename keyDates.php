@@ -1,28 +1,7 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+include 'cors.php';
+include 'db_config.php';
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-// Database configuration
-$host = 'localhost';
-$db_name = 'paper';
-$username = 'root';
-$password = '';
-
-// Connect to the database
-$conn = new mysqli($host, $username, $password, $db_name);
-
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Database connection failed: ' . $conn->connect_error]);
-    exit;
-}
 
 $method = $_SERVER['REQUEST_METHOD'];
 

@@ -1,25 +1,6 @@
 <?php
-
-// Set CORS headers
-header('Access-Control-Allow-Origin: *'); // Allow requests from the React frontend
-header('Content-Type: application/json'); // Ensure response is JSON
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS'); // Allow necessary methods
-header('Access-Control-Allow-Headers: Content-Type'); // Allow Content-Type header
-
-// Database credentials
-$host = 'localhost';
-$db_name = 'paper'; // Replace with your actual database name
-$username = 'root';
-$password = '';
-
-// Create a database connection
-$conn = new mysqli($host, $username, $password, $db_name);
-
-// Check connection
-if ($conn->connect_error) {
-    echo json_encode(['message' => 'Database connection failed: ' . $conn->connect_error]);
-    exit;
-}
+include 'cors.php';
+include 'db_config.php';
 
 // Handle OPTIONS request for CORS preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

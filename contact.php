@@ -1,18 +1,6 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET");
-header("Access-Control-Allow-Headers: Content-Type");
-
-$servername = "localhost";
-$username = "root"; // Your MySQL username
-$password = ""; // Your MySQL password
-$dbname = "paper"; // Your database name
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die(json_encode(["message" => "Database connection failed: " . $conn->connect_error]));
-}
+include 'cors.php';
+include 'db_config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle POST request: Insert data

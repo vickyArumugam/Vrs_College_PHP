@@ -1,22 +1,6 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json");
-
-// Database connection
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "paper";
-
-$conn = new mysqli($host, $user, $password, $database);
-
-// Check for connection errors
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "Database connection failed."]);
-    exit;
-}
+include 'cors.php';
+include 'db_config.php';
 
 // Handle GET request to fetch all members
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

@@ -1,32 +1,11 @@
 <?php
-// Enable error reporting for debugging
+include 'cors.php';
+include 'db_config.php';
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Set CORS headers
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-// Database credentials
-$host = 'localhost';
-$db_name = 'paper';
-$username = 'root';
-$password = '';
-
-// Establish database connection
-$conn = new mysqli($host, $username, $password, $db_name);
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Database connection failed: ' . $conn->connect_error]);
-    exit;
-}
-
-// Handle OPTIONS request for CORS preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 // Determine the request method
 $method = $_SERVER['REQUEST_METHOD'];

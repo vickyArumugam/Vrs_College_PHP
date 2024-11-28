@@ -1,15 +1,6 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Methods, Authorization');
-
-// Database connection
-$conn = new mysqli('localhost', 'root', '', 'paper');
-
-if ($conn->connect_error) {
-    die(json_encode(['error' => 'Database connection failed']));
-}
+include 'cors.php';
+include 'db_config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
