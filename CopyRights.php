@@ -16,16 +16,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Handle GET request (fetch footer content)
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    $sql = "SELECT content FROM Copy_rights WHERE id = 1";
-    $result = $conn->query($sql);
+    $result = $conn->query("SELECT content FROM Copy_rights WHERE id = 1"); // Adjust query as needed
 
-    if ($result->num_rows > 0) {
+    if ($result && $result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        echo $row['content'];
+        echo json_encode(['copyRight' => $row['content']]);
     } else {
-        echo "No footer content found";
+        echo json_encode(['copyRight' => '© 2024 Your Organization. All rights reserved.']); // Default text
     }
+    
 }
-
 $conn->close();
 ?>

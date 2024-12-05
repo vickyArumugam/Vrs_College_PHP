@@ -2,40 +2,45 @@
 include 'cors.php';
 include 'db_config.php';
 
-$method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'] ?? '';
+$data = json_decode(file_get_contents("php://input"), true);
 
 if ($method === 'POST') {
-    // Handle POST request to store data
-    $data = json_decode(file_get_contents("php://input"), true);
-
-    if (empty($data)) {
-        echo json_encode(['error' => 'No data provided']);
+    // Check if file and fields are set
+    if (empty($_FILES['image']['tmp_name']) || empty($_POST['name']) || empty($_POST['title'])) {
+        echo json_encode(['error' => 'Missing required fields.']);
         http_response_code(400);
         exit;
     }
 
-    foreach ($data as $card) {
-        $name = $conn->real_escape_string($card['name']);
-        $imageUrl = $conn->real_escape_string($card['imageUrl']);
-        $title = $conn->real_escape_string($card['title']);
+    $name = $conn->real_escape_string($_POST['name']);
+    $title = $conn->real_escape_string($_POST['title']);
 
-        $sql = "INSERT INTO key_invitees (name, image_url, title) VALUES ('$name', '$imageUrl', '$title')";
-
-        if (!$conn->query($sql)) {
-            echo json_encode(['error' => 'Failed to insert data: ' . $conn->error]);
-            http_response_code(500);
-            exit;
-        }
+    // Validate and handle image upload
+    if (is_uploaded_file($_FILES['image']['tmp_name'])) {
+        $imageData = file_get_contents($_FILES['image']['tmp_name']);
+        $imageDataEscaped = $conn->real_escape_string($imageData);
+    } else {
+        echo json_encode(['error' => 'Invalid image upload.']);
+        http_response_code(400);
+        exit;
     }
 
-    echo json_encode(['success' => 'Data inserted successfully']);
-    http_response_code(200);
+    // Insert data into the database
+    $sql = "INSERT INTO key_invitees (name, title, image_url) VALUES ('$name', '$title', '$imageDataEscaped')";
 
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(['success' => 'Data inserted successfully.']);
+        http_response_code(200);
+    } else {
+        echo json_encode(['error' => 'Database error: ' . $conn->error]);
+        http_response_code(500);
+    }
 } elseif ($method === 'GET') {
-    // Handle GET request to retrieve data
-    $result = $conn->query("SELECT * FROM key_invitees ORDER BY id DESC LIMIT 1");
+    // Fetch data from the database
+    $result = $conn->query("SELECT id, name, title, TO_BASE64(image_url) as image_url FROM key_invitees ORDER BY id DESC LIMIT 1");
 
-    if ($result->num_rows > 0) {
+    if ($result && $result->num_rows > 0) {
         $data = [];
         while ($row = $result->fetch_assoc()) {
             $data[] = $row;

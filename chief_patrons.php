@@ -2,69 +2,58 @@
 include 'cors.php';
 include 'db_config.php';
 
-// Handle CORS preflight requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-// Determine request method
 $method = $_SERVER['REQUEST_METHOD'] ?? '';
+$data = json_decode(file_get_contents("php://input"), true);
 
 if ($method === 'POST') {
-    // Add a new Chief Patron
-    $data = json_decode(file_get_contents("php://input"), true);
+    // Check if file and fields are set
+    if (empty($_FILES['image']['tmp_name']) || empty($_POST['name']) || empty($_POST['role'])) {
+        echo json_encode(['error' => 'Missing required fields.']);
+        http_response_code(400);
+        exit;
+    }
 
-    $name = $data['name'] ?? null;
-    $role = $data['role'] ?? null;
-    $imageUrl = $data['imageUrl'] ?? null;
+    $name = $conn->real_escape_string($_POST['name']);
+    $role = $conn->real_escape_string($_POST['role']);
 
-    if ($name && $role && $imageUrl) {
-        $query = "INSERT INTO chief_patrons (name, role, image_url) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("sss", $name, $role, $imageUrl);
-
-        if ($stmt->execute()) {
-            echo json_encode(["success" => true, "message" => "Chief Patron added successfully"]);
-        } else {
-            echo json_encode(["success" => false, "message" => "Failed to add Chief Patron"]);
-        }
-        $stmt->close();
+    // Validate and handle image upload
+    if (is_uploaded_file($_FILES['image']['tmp_name'])) {
+        $imageData = file_get_contents($_FILES['image']['tmp_name']);
+        $imageDataEscaped = $conn->real_escape_string($imageData);
     } else {
-        echo json_encode(["error" => "Invalid input"]);
+        echo json_encode(['error' => 'Invalid image upload.']);
+        http_response_code(400);
+        exit;
+    }
+
+    // Insert data into the database
+    $sql = "INSERT INTO chief_patrons (name, role, image_url) VALUES ('$name', '$role', '$imageDataEscaped')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(['success' => 'Data inserted successfully.']);
+        http_response_code(200);
+    } else {
+        echo json_encode(['error' => 'Database error: ' . $conn->error]);
+        http_response_code(500);
     }
 } elseif ($method === 'GET') {
-    // Fetch all Chief Patrons
-    $query = "SELECT id, name, role, image_url FROM chief_patrons ORDER BY id DESC LIMIT 4";
-    $result = $conn->query($query);
+    // Fetch data from the database
+    $result = $conn->query("SELECT id, name, role, TO_BASE64(image_url) as image_url FROM chief_patrons ORDER BY id DESC LIMIT 4");
 
-    $chiefPatrons = [];
-    while ($row = $result->fetch_assoc()) {
-        $chiefPatrons[] = $row;
-    }
-
-    echo json_encode($chiefPatrons);
-} elseif ($method === 'DELETE') {
-    // Delete a Chief Patron
-    $data = json_decode(file_get_contents("php://input"), true);
-    $id = $data['id'] ?? null;
-
-    if ($id) {
-        $query = "DELETE FROM chief_patrons WHERE id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $id);
-
-        if ($stmt->execute()) {
-            echo json_encode(["success" => true, "message" => "Chief Patron deleted successfully"]);
-        } else {
-            echo json_encode(["success" => false, "message" => "Failed to delete Chief Patron"]);
+    if ($result && $result->num_rows > 0) {
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
         }
-        $stmt->close();
+        echo json_encode($data);
+        http_response_code(200);
     } else {
-        echo json_encode(["error" => "Invalid ID"]);
+        echo json_encode(['message' => 'No data found']);
+        http_response_code(404);
     }
 } else {
-    echo json_encode(["error" => "Unsupported request method"]);
+    echo json_encode(['error' => 'Invalid request method']);
+    http_response_code(405);
 }
 
 $conn->close();

@@ -18,6 +18,9 @@ if ($method === 'GET') {
     if ($result->num_rows > 0) {
         $data = [];
         while ($row = $result->fetch_assoc()) {
+            if ($row['backgroundImage']) {
+                $row['backgroundImage'] = base64_encode($row['backgroundImage']); // Encode binary data
+            }
             $data[] = $row;
         }
         echo json_encode($data);
@@ -29,28 +32,33 @@ if ($method === 'GET') {
     $input = json_decode(file_get_contents("php://input"), true);
 
     // Validate the received data
-    if ($input && isset($input['conferenceTitle'], $input['conferenceSubtitle'], $input['conferenceDate'], $input['conferenceType'])) {
-        $conferenceTitle = $conn->real_escape_string($input['conferenceTitle']);
-        $conferenceSubtitle = $conn->real_escape_string($input['conferenceSubtitle']);
-        $conferenceDate = $conn->real_escape_string($input['conferenceDate']);
-        $conferenceType = $conn->real_escape_string($input['conferenceType']);
-
-        $query = "INSERT INTO conferences (conferenceTitle, conferenceSubtitle, conferenceDate, conferenceType) 
-                  VALUES ('$conferenceTitle', '$conferenceSubtitle', '$conferenceDate', '$conferenceType')";
-
-        // Execute the query
-        if ($conn->query($query) === TRUE) {
-            echo json_encode(['message' => 'Data inserted successfully.']);
-        } else {
-            echo json_encode(['message' => 'Failed to insert data: ' . $conn->error]);
-        }
+    if (isset($_FILES['backgroundImage']) && $_FILES['backgroundImage']['error'] === UPLOAD_ERR_OK) {
+        // Read the file content as binary
+        $backgroundImage = file_get_contents($_FILES['backgroundImage']['tmp_name']);
     } else {
-        echo json_encode(['message' => 'Invalid data received.']);
+        $backgroundImage = null; // No image provided
     }
+
+    $conferenceTitle = $conn->real_escape_string($_POST['conferenceTitle']);
+    $conferenceSubtitle = $conn->real_escape_string($_POST['conferenceSubtitle']);
+    $conferenceDate = $conn->real_escape_string($_POST['conferenceDate']);
+    $conferenceType = $conn->real_escape_string($_POST['conferenceType']);
+
+    // Use a prepared statement to securely insert binary data
+    $stmt = $conn->prepare("INSERT INTO conferences (conferenceTitle, conferenceSubtitle, conferenceDate, conferenceType, backgroundImage) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $conferenceTitle, $conferenceSubtitle, $conferenceDate, $conferenceType, $backgroundImage);
+
+    if ($stmt->execute()) {
+        echo json_encode(['message' => 'Data inserted successfully.']);
+    } else {
+        echo json_encode(['message' => 'Error: ' . $stmt->error]);
+    }
+
+    $stmt->close();
 } else {
-    http_response_code(405);
-    echo json_encode(['message' => 'Method not allowed.']);
+    echo json_encode(['message' => 'Invalid request.']);
 }
+
 
 $conn->close();
 ?>
