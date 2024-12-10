@@ -5,13 +5,11 @@ include 'db_config.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
-
 // Determine the request method
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'POST') {
-    // Handle POST request
+
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!empty($data['title']) && is_array($data['descriptions']) && count($data['descriptions']) > 0) {
@@ -20,7 +18,6 @@ if ($method === 'POST') {
 
         $errors = [];
         foreach ($descriptions as $description) {
-            // Use prepared statement for secure query
             $stmt = $conn->prepare("INSERT INTO author_journals_publication (title, publication_description) VALUES (?, ?)");
             $stmt->bind_param("ss", $title, $description);
 
@@ -39,7 +36,6 @@ if ($method === 'POST') {
         echo json_encode(['error' => 'Both title and at least one description are required.']);
     }
 } elseif ($method === 'GET') {
-    // Handle GET request
     $sql = "SELECT title, publication_description FROM author_journals_publication";
     $result = $conn->query($sql);
 
@@ -56,7 +52,6 @@ if ($method === 'POST') {
         echo json_encode(['message' => 'No journals found.']);
     }
 } else {
-    // Handle unsupported methods
     echo json_encode(['error' => 'Unsupported request method.']);
 }
 
